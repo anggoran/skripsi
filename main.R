@@ -31,6 +31,10 @@ pls_model <- estimate_pls(
 # Membuat rangkuman hasil estimasi model.
 model_summary <- summary(pls_model)
 
+# Melakukan bootstrap terhadap model.
+boot_model <- bootstrap_model(pls_model)
+boot_summary <- summary(boot_model, alpha = 0.05)
+
 
 # -- [ Analisis Model Pengukuran ] --
 
@@ -51,8 +55,6 @@ model_summary$validity$htmt
 model_summary$vif_antecedents
 
 ## 2. Significance and relevance
-boot_model <- bootstrap_model(pls_model)
-boot_summary <- summary(boot_model, alpha = 0.05)
 ### 2.1 Signifikansi path coefficients: boot_summary$bootstrapped_paths pada kolom T Stat (alpha = 0.05, t-values > 1.960 agar signifikan).
 boot_summary$bootstrapped_paths
 ### 2.2 Relevansi path coefficients: boot_summary$bootstrapped_total_paths pada kolom Original Est. untuk key outcome KF dan KRS (semakin tinggi semakin relevan variabel independen terkait).
