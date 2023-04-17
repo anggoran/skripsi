@@ -63,7 +63,7 @@ boot_summary$bootstrapped_total_paths
 ## 3. Explanatory power: boot_summary$paths pada baris R^2 (0.25 ≤ x < 0.5 (rendah), 0.5 ≤ x < 0.75 (sedang), x ≥ 0.75 (tinggi)).
 model_summary$paths
 
-## 4. Predictive power: predict_summary pada baris RMSE untuk key outcome KF dan KRS (PLS out-of-sample < LM out-of-sample agar high predictive power).
+## 4. Predictive power: predict_summary pada baris RMSE, di mana PLS out-of-sample < LM out-of-sample (all: high, majority: medium, minority: low, none: lacks).
 predict_model <- predict_pls(model = pls_model, noFolds = 10, reps = 10)
 predict_summary <- summary(predict_model)
 predict_summary
