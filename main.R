@@ -1,3 +1,5 @@
+# oleh Muhammad Anggoran Iwari (1906366425) - Fakultas Ekonomi dan Bisnis, Universitas Indonesia
+
 # Load seminr package
 library(seminr)
 
@@ -32,7 +34,7 @@ pls_model <- estimate_pls(
 model_summary <- summary(pls_model)
 
 # Melakukan bootstrap terhadap model.
-boot_model <- bootstrap_model(pls_model)
+boot_model <- bootstrap_model(pls_model, nboot = 10000)
 boot_summary <- summary(boot_model, alpha = 0.05)
 
 
@@ -55,10 +57,9 @@ model_summary$validity$htmt
 model_summary$vif_antecedents
 
 ## 2. Significance and relevance
-### 2.1 Signifikansi path coefficients: boot_summary$bootstrapped_paths pada kolom T Stat (alpha = 0.05, t-values > 1.960 agar signifikan).
+### Signifikansi: boot_summary$bootstrapped_paths pada kolom T Stat (alpha = 0.05, t-values > 1.960 agar signifikan).
+### Relevansi: boot_summary$bootstrapped_paths pada kolom Original Est (> 0 untuk positif, < 0 untuk negatif).
 boot_summary$bootstrapped_paths
-### 2.2 Relevansi path coefficients: boot_summary$bootstrapped_total_paths pada kolom Original Est. untuk key outcome KF dan KRS (semakin tinggi semakin relevan variabel independen terkait).
-boot_summary$bootstrapped_total_paths
 
 ## 3. Explanatory power: boot_summary$paths pada baris R^2 (0.25 ≤ x < 0.5 (rendah), 0.5 ≤ x < 0.75 (sedang), x ≥ 0.75 (tinggi)).
 model_summary$paths
@@ -91,7 +92,7 @@ specific_effect_significance(boot_model, from = "PBAT", through = "IPS", to = "K
 model_summary$paths
 boot_summary$bootstrapped_paths
 
-## 3. Tes total effect (variabel dengan indirect effect & direct effect signifikan, jika positif maka signifikan).
+## 3. Tes total effect (variabel dengan indirect effect & direct effect signifikan).
 model_summary$paths["PBAT", "KF"] * model_summary$paths["PBAT", "IPS"] * model_summary$paths["IPS", "KF"]
 
 
