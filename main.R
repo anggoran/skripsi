@@ -4,7 +4,7 @@
 library(seminr)
 
 # Memuat CSV yang berisikan data untuk Main Test.
-goran_main_test_data <- read.csv(file = "maintest.csv", header = TRUE, sep = ",")
+main_test_data <- read.csv(file = "maintest.csv", header = TRUE, sep = ",")
 
 # Membuat model pengukuran (reflektif atau Mode_A), yakni variabel indikator dikelompokkan kepada masing-masing variabel laten.
 measurement_model <- constructs(
@@ -25,7 +25,7 @@ structural_model <- relationships(
 
 # Membuat estimasi model PLS-SEM.
 pls_model <- estimate_pls(
-  data = goran_main_test_data,
+  data = main_test_data,
   measurement_model = measurement_model,
   structural_model = structural_model
 )
@@ -35,7 +35,7 @@ model_summary <- summary(pls_model)
 
 # Melakukan bootstrap terhadap model.
 boot_model <- bootstrap_model(pls_model, nboot = 10000)
-boot_summary <- summary(boot_model, alpha = 0.05)
+boot_summary <- summary(boot_model)
 
 
 # -- [ Analisis Model Pengukuran ] --
@@ -74,22 +74,20 @@ predict_summary
 # Signifikan adalah tidak ada nilai 0 pada confidence interval.
 
 ## 1. Tes indirect effect
-model_summary$total_indirect_effects
 specific_effect_significance(boot_model, from = "PTI", through = "IPK", to = "KF")
-specific_effect_significance(boot_model, from = "PBD", through = "IPK", to = "KF")
-specific_effect_significance(boot_model, from = "PBAT", through = "IPK", to = "KF")
 specific_effect_significance(boot_model, from = "PTI", through = "IPK", to = "KRS")
-specific_effect_significance(boot_model, from = "PBD", through = "IPK", to = "KRS")
-specific_effect_significance(boot_model, from = "PBAT", through = "IPK", to = "KRS")
 specific_effect_significance(boot_model, from = "PTI", through = "IPS", to = "KF")
-specific_effect_significance(boot_model, from = "PBD", through = "IPS", to = "KF")
-specific_effect_significance(boot_model, from = "PBAT", through = "IPS", to = "KF")
 specific_effect_significance(boot_model, from = "PTI", through = "IPS", to = "KRS")
-specific_effect_significance(boot_model, from = "PBD", through = "IPS", to = "KRS")
+specific_effect_significance(boot_model, from = "PBAT", through = "IPK", to = "KF")
+specific_effect_significance(boot_model, from = "PBAT", through = "IPK", to = "KRS")
+specific_effect_significance(boot_model, from = "PBAT", through = "IPS", to = "KF")
 specific_effect_significance(boot_model, from = "PBAT", through = "IPS", to = "KRS")
+specific_effect_significance(boot_model, from = "PBD", through = "IPK", to = "KF")
+specific_effect_significance(boot_model, from = "PBD", through = "IPK", to = "KRS")
+specific_effect_significance(boot_model, from = "PBD", through = "IPS", to = "KF")
+specific_effect_significance(boot_model, from = "PBD", through = "IPS", to = "KRS")
 
 ## 2. Tes direct effect
-model_summary$paths
 boot_summary$bootstrapped_paths
 
 ## 3. Tes total effect (variabel dengan indirect effect & direct effect signifikan).
