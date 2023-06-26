@@ -4,23 +4,29 @@
 library(seminr)
 
 # Memuat CSV yang berisikan data untuk Main Test.
-main_test_data <- read.csv(file = "maintest.csv", header = TRUE, sep = ",")
+main_test_data <- read.csv(file = "MAIN_TEST.csv", header = TRUE, sep = ",")
+
+# Merapikan data untuk analisis.
+main_test_data <- subset(main_test_data, select = -c(KF1, KF2, KF3))
+old_bda_names <- c("PBAT1", "PBAT2", "PBAT3", "PBD1", "PBD2")
+new_bda_names <- paste0("BDA", 1:5)
+changed_columns <- match(old_bda_names, names(main_test_data))
+names(main_test_data)[changed_columns] <- new_bda_names
 
 # Membuat model pengukuran (reflektif atau Mode_A), yakni variabel indikator dikelompokkan kepada masing-masing variabel laten.
 measurement_model <- constructs(
   composite("PTI", multi_items("PTI", 1:3), weights = mode_A),
-  composite("PBAT", multi_items("PBAT", 1:3), weights = mode_A),
-  composite("PBD", multi_items("PBD", 1:2), weights = mode_A),
+  composite("BDA", multi_items("BDA", 1:5), weights = mode_A),
   composite("IPK", multi_items("IPK", 1:3), weights = mode_A),
   composite("IPS", multi_items("IPS", 1:3), weights = mode_A),
-  composite("KF", multi_items("KF", 1:3), weights = mode_A),
-  composite("KRS", multi_items("KRS", 1:3), weights = mode_A)
+  composite("KRS", multi_items("KRS", 1:3), weights = mode_A),
+  higher_composite("INO", c("IPK", "IPS"))
 )
 
 # Membuat model struktural, yakni hubungan antara variabel laten.
 structural_model <- relationships(
-  paths(from = c("PTI", "PBAT", "PBD"), to = c("IPK", "IPS", "KF", "KRS")),
-  paths(from = c("IPK", "IPS"), to = c("KF", "KRS"))
+  paths(from = c("PTI", "BDA"), to = c("INO", "KRS")),
+  paths(from = c("INO"), to = c("KRS"))
 )
 
 # Membuat estimasi model PLS-SEM.
@@ -29,13 +35,23 @@ pls_model <- estimate_pls(
   measurement_model = measurement_model,
   structural_model = structural_model
 )
+measurement_for_predict <- measurement_model[-length(measurement_model)]
+structural_for_predict <- relationships(
+  paths(from = c("PTI", "BDA"), to = c("IPK", "IPS", "KRS")),
+  paths(from = c("IPK", "IPS"), to = c("KRS"))
+)
+model_for_predict <- estimate_pls(
+  data = main_test_data,
+  measurement_model = measurement_for_predict,
+  structural_model = structural_for_predict
+)
 
 # Membuat rangkuman hasil estimasi model.
 model_summary <- summary(pls_model)
 
 # Melakukan bootstrap terhadap model.
 boot_model <- bootstrap_model(pls_model, nboot = 10000)
-boot_summary <- summary(boot_model)
+boot_summary <- summary(boot_model, alpha = 0.10)
 
 
 # -- [ Analisis Model Pengukuran ] --
@@ -57,7 +73,7 @@ model_summary$validity$htmt
 model_summary$vif_antecedents
 
 ## 2. Significance and relevance
-### Signifikansi: boot_summary$bootstrapped_paths pada kolom T Stat (alpha = 0.05, t-values > 1.960 agar signifikan).
+### Signifikansi: boot_summary$bootstrapped_paths pada kolom T Stat (alpha = 0.05 one-tailed, t-values > 1.645 agar signifikan).
 ### Relevansi: boot_summary$bootstrapped_paths pada kolom Original Est (> 0 untuk positif, < 0 untuk negatif).
 boot_summary$bootstrapped_paths
 
@@ -65,8 +81,8 @@ boot_summary$bootstrapped_paths
 model_summary$paths
 
 ## 4. Predictive power: predict_summary pada baris RMSE, di mana PLS out-of-sample < LM out-of-sample (all: high, majority: medium, minority: low, none: lacks).
-predict_model <- predict_pls(model = pls_model, noFolds = 10, reps = 10)
-predict_summary <- summary(predict_model)
+predict_model <- predict_pls(model = model_for_predict, noFolds = 10, reps = 10)
+predict_summary <- summary(predict_model, alpha = 0.10)
 predict_summary
 
 
@@ -74,24 +90,14 @@ predict_summary
 # Signifikan adalah tidak ada nilai 0 pada confidence interval.
 
 ## 1. Tes indirect effect
-specific_effect_significance(boot_model, from = "PTI", through = "IPK", to = "KF")
-specific_effect_significance(boot_model, from = "PTI", through = "IPK", to = "KRS")
-specific_effect_significance(boot_model, from = "PTI", through = "IPS", to = "KF")
-specific_effect_significance(boot_model, from = "PTI", through = "IPS", to = "KRS")
-specific_effect_significance(boot_model, from = "PBAT", through = "IPK", to = "KF")
-specific_effect_significance(boot_model, from = "PBAT", through = "IPK", to = "KRS")
-specific_effect_significance(boot_model, from = "PBAT", through = "IPS", to = "KF")
-specific_effect_significance(boot_model, from = "PBAT", through = "IPS", to = "KRS")
-specific_effect_significance(boot_model, from = "PBD", through = "IPK", to = "KF")
-specific_effect_significance(boot_model, from = "PBD", through = "IPK", to = "KRS")
-specific_effect_significance(boot_model, from = "PBD", through = "IPS", to = "KF")
-specific_effect_significance(boot_model, from = "PBD", through = "IPS", to = "KRS")
+specific_effect_significance(boot_model, from = "PTI", through = "INO", to = "KRS", alpha = 0.10)
+specific_effect_significance(boot_model, from = "BDA", through = "INO", to = "KRS", alpha = 0.10)
 
 ## 2. Tes direct effect
 boot_summary$bootstrapped_paths
 
 ## 3. Tes total effect (variabel dengan indirect effect & direct effect signifikan).
-model_summary$paths["PBAT", "KF"] * model_summary$paths["PBAT", "IPS"] * model_summary$paths["IPS", "KF"]
+model_summary$paths["PTI", "KRS"] * model_summary$paths["PTI", "INO"] * model_summary$paths["INO", "KRS"]
 
 
 # Membuat diagram SEM.
