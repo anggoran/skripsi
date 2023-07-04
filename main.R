@@ -1,18 +1,11 @@
 # oleh Muhammad Anggoran Iwari (1906366425) - Fakultas Ekonomi dan Bisnis, Universitas Indonesia
+# merujuk pada https://doi.org/10.1007/978-3-030-80519-7
 
-# Load seminr package
+# Memuat package seminr.
 library(seminr)
 
-# Memuat CSV yang berisikan data untuk Main Test.
-main_test_data <- read.csv(file = "MAIN_TEST.csv", header = TRUE, sep = ",")
-
-# Merapikan data untuk analisis.
-main_test_data <- subset(main_test_data, select = -c(KF1, KF2, KF3))
-names(main_test_data) <- gsub("KRS", "KRP", names(main_test_data))
-old_bda_names <- c("PBAT1", "PBAT2", "PBAT3", "PBD1", "PBD2")
-new_bda_names <- paste0("BDA", 1:5)
-changed_columns <- match(old_bda_names, names(main_test_data))
-names(main_test_data)[changed_columns] <- new_bda_names
+# Memuat data untuk main test.
+data <- load()
 
 # Membuat model pengukuran (reflektif atau Mode_A), yakni variabel indikator dikelompokkan kepada masing-masing variabel laten.
 measurement_model <- constructs(
