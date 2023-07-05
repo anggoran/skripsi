@@ -5,7 +5,7 @@
 library(seminr)
 
 # Memuat data untuk main test.
-data <- load()
+main_data <- load()
 
 # Membuat model pengukuran (reflektif atau Mode_A), yakni variabel indikator dikelompokkan kepada masing-masing variabel laten.
 measurement_model <- constructs(
@@ -25,7 +25,7 @@ structural_model <- relationships(
 
 # Membuat estimasi model PLS-SEM.
 pls_model <- estimate_pls(
-  data = main_test_data,
+  data = main_data,
   measurement_model = measurement_model,
   structural_model = structural_model
 )
@@ -35,7 +35,7 @@ structural_for_predict <- relationships(
   paths(from = c("IPK", "IPS"), to = c("KRP"))
 )
 model_for_predict <- estimate_pls(
-  data = main_test_data,
+  data = main_data,
   measurement_model = measurement_for_predict,
   structural_model = structural_for_predict
 )
